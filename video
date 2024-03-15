@@ -1,0 +1,55 @@
+import cv2
+import numpy as np
+
+# Open the video file
+cap = cv2.VideoCapture('path_to_your_video.mp4')
+
+# Check if video opened successfully
+if not cap.isOpened():
+    print("Error opening video file")
+
+# Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 'mp4v' for .mp4 files
+out = cv2.VideoWriter('output_video.mp4', fourcc, 20.0, (400, 300))
+
+# Source points (example coordinates)
+src_points = np.array([
+    [120, 90],   # Top-left corner of the object
+    [460, 85],   # Top-right corner
+    [130, 320],  # Bottom-left corner
+    [455, 315]   # Bottom-right corner
+], dtype=np.float32)
+
+# Destination points to form a 400x300 rectangle
+dst_points = np.array([
+    [0, 0],
+    [399, 0],
+    [0, 299],
+    [399, 299]
+], dtype=np.float32)
+
+# Compute the perspective transform matrix
+matrix = cv2.getPerspectiveTransform(src_points, dst_points)
+
+while(cap.isOpened()):
+    ret, frame = cap.read()
+    if ret:
+        # Apply the perspective transformation
+        transformed_frame = cv2.warpPerspective(frame, matrix, (400, 300))
+        
+        # Write the frame into the file 'output_video.mp4'
+        out.write(transformed_frame)
+
+        # Optionally, display the frame
+        cv2.imshow('Frame', transformed_frame)
+
+        # Break the loop when 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    else:
+        break
+
+# Release everything when job is finished
+cap.release()
+out.release()
+cv2.destroyAllWindows()
